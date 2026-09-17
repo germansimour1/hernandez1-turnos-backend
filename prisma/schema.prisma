@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Barbero {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique
+  activo   Boolean   @default(true)
+  horarios Horario[]
+  turnos   Turno[]
+}
+
+model Servicio {
+  id          Int     @id @default(autoincrement())
+  nombre      String  @unique
+  duracionMin Int
+  precio      Float?
+  activo      Boolean @default(true)
+  turnos      Turno[]
+}
+
+// Horario de atención de un barbero por día de la semana.
+// diaSemana: 0 = domingo, 1 = lunes, ... 6 = sábado
+model Horario {
+  id         Int     @id @default(autoincrement())
+  barberoId  Int
+  barbero    Barbero @relation(fields: [barberoId], references: [id])
+  diaSemana  Int
+  horaInicio String
+  horaFin    String
+
+  @@unique([barberoId, diaSemana])
+}
+
+// Estados posibles de un turno
+// PENDIENTE   -> el cliente lo solicitó, esperando aprobación del barbero
+// CONFIRMADO  -> el barbero lo aprobó
+// RECHAZADO   -> el barbero lo rechazó
+// CANCELADO   -> lo canceló el cliente (o el barbero) luego de confirmado/pendiente
+model Turno {
+  id              Int      @id @default(autoincrement())
+  clienteNombre   String
+  clienteTelefono String?
+  barberoId       Int
+  barbero         Barbero  @relation(fields: [barberoId], references: [id])
+  servicioId      Int
+  servicio        Servicio @relation(fields: [servicioId], references: [id])
+  fecha           String
+  horaInicio      String
+  horaFin         String
+  estado          String   @default("PENDIENTE")
+  notas           String?
+  creadoEn        DateTime @default(now())
+  actualizadoEn   DateTime @updatedAt
+
+  @@index([barberoId, fecha])
+  @@index([estado])
+}
