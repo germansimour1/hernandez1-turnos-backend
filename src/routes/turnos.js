@@ -1,6 +1,7 @@
 const express = require('express');
 const { z } = require('zod');
 const prisma = require('../db');
+const { requireAuth } = require('../middleware/auth');
 const {
   timeToMinutes,
   minutesToTime,
@@ -141,7 +142,7 @@ router.post('/', async (req, res, next) => {
 // Alimenta el panel del barbero (vistas día / semana / mes):
 // - fecha=YYYY-MM-DD para un día puntual
 // - desde=YYYY-MM-DD&hasta=YYYY-MM-DD para un rango (semana o mes)
-router.get('/', async (req, res, next) => {
+router.get('/', requireAuth, async (req, res, next) => {
   try {
     const { barberoId, fecha, desde, hasta, estado } = req.query;
     const where = {};
@@ -178,7 +179,7 @@ router.get('/', async (req, res, next) => {
 });
 
 // GET /api/turnos/pendientes?barberoId= -> bandeja de solicitudes del barbero
-router.get('/pendientes', async (req, res, next) => {
+router.get('/pendientes', requireAuth, async (req, res, next) => {
   try {
     const { barberoId } = req.query;
     const where = { estado: 'PENDIENTE' };
@@ -236,10 +237,10 @@ async function cambiarEstado(req, res, next, nuevoEstado, estadosPermitidosDesde
 }
 
 // PATCH /api/turnos/:id/aprobar -> el barbero confirma la solicitud
-router.patch('/:id/aprobar', (req, res, next) => cambiarEstado(req, res, next, 'CONFIRMADO', ['PENDIENTE']));
+router.patch('/:id/aprobar', requireAuth, (req, res, next) => cambiarEstado(req, res, next, 'CONFIRMADO', ['PENDIENTE']));
 
 // PATCH /api/turnos/:id/rechazar -> el barbero rechaza la solicitud
-router.patch('/:id/rechazar', (req, res, next) => cambiarEstado(req, res, next, 'RECHAZADO', ['PENDIENTE']));
+router.patch('/:id/rechazar', requireAuth, (req, res, next) => cambiarEstado(req, res, next, 'RECHAZADO', ['PENDIENTE']));
 
 // PATCH /api/turnos/:id/cancelar -> cancelación (cliente o barbero)
 router.patch('/:id/cancelar', (req, res, next) =>
