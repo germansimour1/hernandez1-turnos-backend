@@ -4,6 +4,7 @@ const cors = require('cors');
 const barberosRouter = require('./routes/barberos');
 const serviciosRouter = require('./routes/servicios');
 const turnosRouter = require('./routes/turnos');
+const authRouter = require('./routes/auth');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/barberos', barberosRouter);
 app.use('/api/servicios', serviciosRouter);
 app.use('/api/turnos', turnosRouter);
+app.use('/api/auth', authRouter);
 
 // 404 para rutas no encontradas
 app.use((req, res) => {
